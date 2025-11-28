@@ -1,0 +1,136 @@
+
+
+
+#El siguiente código permite comparar rendimiento medio de los modelos utilizados utilizando la muestra en su totalidad
+#El mismo proporciona el rendiemiento al usar cross varidation con 10 divisiones para cada modelo
+#Y proporciona medidas de las curvas de roc y la matriz de confusión de cada modelo sobre una división del 80% de la muestra en entrenamiento y 20% en testeo
+
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import sklearn as sk
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score,  mean_squared_error, RocCurveDisplay
+from sklearn.model_selection import cross_val_score, cross_val_predict, cross_validate, GridSearchCV
+from sklearn.pipeline import make_pipeline
+from sklearn.decomposition import PCA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
+from sklearn.svm import SVC
+from sklearn.ensemble import GradientBoostingClassifier
+
+
+
+nombres =  [
+    "ID" ,"Diagnosis",
+    "radius1", "texture1", "perimeter1", "area1", "smoothness1", "compactness1",
+    "concavity1", "concave_points1", "symmetry1", "fractal_dimension1",
+    "radius2", "texture2", "perimeter2", "area2", "smoothness2", "compactness2",
+    "concavity2", "concave_points2", "symmetry2", "fractal_dimension2",
+    "radius3", "texture3", "perimeter3", "area3", "smoothness3", "compactness3",
+    "concavity3", "concave_points3", "symmetry3", "fractal_dimension3"
+]
+df = pd.read_csv('wdbc.data', names = nombres)
+data=df.copy()
+data.replace({"Diagnosis":{'M': 1, 'B': 0}}, inplace=True)
+data.drop(columns=["ID"], inplace=True)
+
+tags= nombres
+del tags[0]
+data1=df.copy()
+data1.replace({"Diagnosis":{'M': 1, 'B': 0}}, inplace=True)
+data1.drop(columns=["ID"], inplace=True)
+
+models=[
+  LogisticRegression(max_iter=1000),DecisionTreeClassifier(),RandomForestClassifier(n_estimators = 200),QuadraticDiscriminantAnalysis(),
+  LinearDiscriminantAnalysis(), SVC(kernel='linear', C=1.0, probability=True),  SVC(kernel='sigmoid', probability=True ),   SVC(kernel='rbf', probability=True ),  GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=100, random_state=42)
+  ]
+
+
+
+model_name=[
+  'LogisticRegression','DecisionTreeClassifier' ,'RandomForestClassifier','QuadraticDiscriminantAnalysis',
+  'LinearDiscriminantAnalysis', 'SVC_linear',  'SVC_sigmoid', 'SVC_rbf', ' GradientBoostingClassifier'
+  ]
+colors = [
+    "#1f77b4",  # azul
+    "#ff7f0e",  # naranja
+    "#2ca02c",  # verde
+    "#d62728",  # rojo
+    "#9467bd",  # violeta
+    "#8c564b",  # marrón
+    "#e377c2",   # rosado
+    "b"
+]
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled  = scaler.transform(X_test)
+model_trained={}
+model_score={}
+for i in range(len(models)):
+    model=make_pipeline(StandardScaler(),models[i])
+    score=cross_val_score(model, X_train, y_train, cv=20)
+    model_score[model_name[i]]=[model,score]
+    resulting=models[i].fit(X_train_scaled, y_train)
+    result=resulting.predict(X_test_scaled)
+    model_trained[model_name[i]]=[result, resulting]
+    print(f"{model_name[i]}: {score.mean()}")
+plt.figure(figsize=(10,6))
+scores_list = []
+for name in model_name:
+    for fold, score in enumerate(model_score[name][1]):
+        scores_list.append({
+            "Modelo": name,
+            "Fold": fold + 1,
+            "Score": score
+        })
+scores_df = pd.DataFrame(scores_list)
+
+# 2. Graficar con stripplot (que incluye jitter automáticamente)
+plt.figure(figsize=(12, 7))
+sns.stripplot(x="Modelo", y="Score", data=scores_df,
+              jitter=True,  # <--- La magia está aquí
+              alpha=0.7,    # <--- También puedes añadir alpha
+              palette=colors) # Usa tu paleta de colores
+plt.title("Comparación del Rendimiento (Strip Plot con Jitter)")
+plt.ylabel("Accuracy (Rendimiento)")
+plt.xticks(rotation=45, ha="right")
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.tight_layout()
+plt.show()
+
+
+fig, ax = plt.subplots(ncols=3, nrows=3, figsize=(20,20))
+for i in range(9):
+  a1=i//3
+  a2=i%3
+  model=model_trained[model_name[i]][1]
+
+  Aplicar=model.predict_proba(X_test_scaled)[:,1]
+  RocCurveDisplay.from_predictions(y_test, Aplicar, ax=ax[a1,a2])
+  ax[a1,a2].set_title(f"{model_name[i]}")
+plt.savefig("RocCurves.png")
+plt.show()
+
+fig, ax = plt.subplots(ncols=3, nrows=3, figsize=(20,20))
+for i in range(9):
+  a1=i//3
+  a2=i%3
+  model=model_trained[model_name[i]]
+  cm = confusion_matrix(y_test, model_trained[model_name[i]][0], labels=[1,0])
+  sns.heatmap(cm, annot=True,ax=ax[a1,a2], fmt="d", cmap="Blues", xticklabels=["Maligno","Benigno"], yticklabels=["Maligno","Benigno"])
+  ax[a1,a2].set_xlabel("Predicho")
+  ax[a1,a2].set_ylabel("Real")
+  ax[a1,a2].set_title(f"{model_name[i]}")
+  print(model_name[i])
+  print(classification_report(y_test, model_trained[model_name[i]][0]))
+plt.savefig("ConfusionMatrix.png")
+plt.show()
