@@ -5,6 +5,18 @@
 
 ---
 
+## 📄 Poster del Proyecto
+
+<p align="center">
+  <a href="poster/Poster.pdf">
+    <img src="poster/Poster_page-0001.jpg" width="100%" alt="Poster del proyecto">
+  </a>
+</p>
+
+👉 *Haz clic sobre la imagen para ver el poster completo en PDF.*
+
+---
+
 ## 📌 Descripción del proyecto
 
 Este repositorio contiene el código, figuras y resultados del estudio aplicado al  
@@ -28,7 +40,7 @@ Se utiliza el **Breast Cancer Wisconsin Diagnostic Dataset**, el cual contiene:
 
 - **569 observaciones**
 - **30 atributos cuantitativos** derivados de imágenes digitales de núcleos celulares
-- 
+
 Las covariables describen forma, textura e irregularidad celular, permitiendo diferenciar tumores:
 
 - **Benignos:** más regulares, variabilidad baja  
@@ -46,11 +58,11 @@ Incluye:
 
 Principales hallazgos:
 
-- Alta colinealidad entre radius, area, perimeter, concave points, compactness y concavity  
+- Alta colinealidad entre *radius*, *area*, *perimeter*, *concave points*, *compactness* y *concavity*  
 - La **primera componente principal** explica ≈ **44 %** de la variabilidad  
 - Las **primeras 10 componentes** explican ≈ **95 %**
 
-Esto motiva la **reducción de dimensionalidad** manteniendo variables esenciales como *radius* y *concave points*.
+Esto motiva la **reducción de dimensionalidad**, manteniendo variables esenciales como *radius* y *concave points*.
 
 ---
 
@@ -83,4 +95,48 @@ Para el conjunto de prueba (80/20), la **Regresión Logística (Data 1)** obtien
 
 ---
 
+## 🖼️ Resultados Visuales
 
+A continuación se presentan las figuras más relevantes generadas durante el análisis.
+
+---
+
+### 🔹 Curvas ROC por modelo
+
+<p align="center">
+  <img src="figures/RocCurves.png" width="95%">
+</p>
+
+---
+
+### 🔹 Matrices de Confusión
+
+<p align="center">
+  <img src="figures/ConfusionMatrix.png" width="95%">
+</p>
+
+---
+
+### 🔹 Matriz de Correlación
+
+<p align="center">
+  <img src="figures/Correlation_Matrix.png" width="95%">
+</p>
+
+---
+
+### 🔹 Histogramas por Covariable
+
+<p align="center">
+  <img src="figures/Histogramas.png" width="95%">
+</p>
+
+---
+
+### 🔹 Componentes Principales (PCA)
+
+<p align="center">
+  <img src="figures/PCA.png" width="95%">
+</p>
+
+---
